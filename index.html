@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+			#info {
+				color: #fff;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">Angry Ball</div>
+		<script src="js/three.js"></script>
+		<script src="js/loaders/JPGLoader.js"></script>
+		<script>
+			// Our Javascript will go here.
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			
+			//dir light
+			var dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+			scene.add(dirLight);
+			
+			// create a point light
+			var pointLight = new THREE.PointLight(0xF8D898);
+			pointLight.position.x = 0;
+			pointLight.position.y = 0;
+			pointLight.position.z = 100;
+			pointLight.intensity = 100;
+			pointLight.distance = 0;
+			scene.add(pointLight);
+			
+			// world
+			var gravity = new THREE.Vector3(0,-0.1,0);
+
+			// ball
+			var ballGeom = new THREE.SphereGeometry( 1, 32, 32 );
+			var ballTexture = new THREE.TextureLoader().load( 'images/ball.jpg' );
+			var ballMaterial = new THREE.MeshPhysicalMaterial( { map:ballTexture } );
+			var ballMesh = new THREE.Mesh( ballGeom, ballMaterial );
+			scene.add( ballMesh );
+			var ballPosition = new THREE.Vector3(0,0,0);
+			var ballVelocity = new THREE.Vector3(0,0,0);
+			var ballImpulse = new THREE.Vector3(0,0,0);
+			var ballImpulseTime = 0;
+			var ballWeight = 5;
+			
+			var updateBall = function(dt) {
+				ballPosition = ballPosition.add(ballVelocity.multiplyScalar(dt));
+				if (ballImpulseTime > 0)
+				{
+					ballVelocity = ballVelocity.add(ballImpulse.multiplyScalar(dt));
+					ballImpulseTime -= dt;
+					if (ballImpulseTime <= 0) {
+						ballImpulse.setScalar(0);
+						ballImpulseTime=0; 
+					}
+				} else {
+					ballVelocity = ballVelocity.add(gravity.multiplyScalar(dt));
+				}
+				
+				ballMesh.position.x = ballPosition.x;
+				ballMesh.position.y = ballPosition.y;
+				ballMesh.position.z = ballPosition.z;
+				
+			};
+
+			camera.position.z = 10;
+			
+			
+			var c = new THREE.Clock();
+			c.getDelta();
+			var animate = function () {
+				requestAnimationFrame( animate );
+				deltaTime = c.getDelta();
+				
+				updateBall(deltaTime);
+				ballMesh.position.y = ballPosition.y;
+
+				renderer.render(scene, camera);
+			};
+
+			animate();
+		</script>
+	</body>
+</html>
